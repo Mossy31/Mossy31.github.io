@@ -1,38 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --players:    #60d0ff;
-  --bases:      #a78bfa;
-  --bg:         #0a0a0a;
-  --surf:       #141414;
-  --surf2:      #1c1c1c;
-  --surf3:      #242424;
-  --border:     #2a2000;
-  --border2:    #3d3000;
-  --fire:       #e87800;
-  --fire2:      #ff4400;
-  --fire-dim:   #5a2e00;
-  --fire-dark:  #1a0d00;
-  --txt:        #c8c0b0;
-  --txt-dim:    #5a5040;
+  --players: #60d0ff;
+  --bases: #a78bfa;
+  --bg: #0a0a0a;
+  --surf: #141414;
+  --surf2: #1c1c1c;
+  --surf3: #242424;
+  --border: #2a2000;
+  --border2: #3d3000;
+  --fire: #e87800;
+  --fire2: #ff4400;
+  --fire-dim: #5a2e00;
+  --fire-dark: #1a0d00;
+  --txt: #c8c0b0;
+  --txt-dim: #5a5040;
   --txt-bright: #f0ead8;
-  --lore-bg:    #0f0d18;
-  --lore-b:     #2d1f5a;
-  --lore-acc:   #9d6fff;
-  --ev-bg:      #0a130d;
-  --ev-b:       #164524;
-  --ev-acc:     #3ecf6a;
-  --rare-bg:    #130e04;
-  --rare-b:     #4a3300;
-  --rare-acc:   #f0a500;
-  --clan-bg:    #090f1a;
-  --clan-b:     #122440;
-  --clan-acc:   #4da6ff;
-  --font:       'JetBrains Mono', monospace;
+  --lore-bg: #0f0d18;
+  --lore-b: #2d1f5a;
+  --lore-acc: #9d6fff;
+  --ev-bg: #0a130d;
+  --ev-b: #164524;
+  --ev-acc: #3ecf6a;
+  --rare-bg: #130e04;
+  --rare-b: #4a3300;
+  --rare-acc: #f0a500;
+  --clan-bg: #090f1a;
+  --clan-b: #122440;
+  --clan-acc: #4da6ff;
+  --font: 'JetBrains Mono', monospace;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   background: var(--bg);
@@ -43,9 +52,21 @@ body {
   min-height: 100vh;
 }
 
-a { color: var(--fire); text-decoration: none; transition: color .15s; }
-a:hover { color: var(--fire2); text-decoration: underline; }
-img { max-width: 100%; display: block; }
+a {
+  color: var(--fire);
+  text-decoration: none;
+  transition: color .15s;
+}
+
+a:hover {
+  color: var(--fire2);
+  text-decoration: underline;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
 
 /* ── LAYOUT ── */
 .wiki-layout {
@@ -87,12 +108,15 @@ img { max-width: 100%; display: block; }
   transition: color .15s, background .15s;
   border-left: 2px solid transparent;
 }
-.sb-dot:hover, .sb-dot.active {
+
+.sb-dot:hover,
+.sb-dot.active {
   color: var(--txt-bright);
   background: var(--surf2);
   border-left-color: var(--fire);
   text-decoration: none;
 }
+
 .sb-dot span {
   width: 8px;
   height: 8px;
@@ -115,6 +139,7 @@ img { max-width: 100%; display: block; }
   margin-bottom: 6px;
   line-height: 1.3;
 }
+
 .wiki-subtitle {
   font-size: 11px;
   font-weight: 700;
@@ -125,6 +150,7 @@ img { max-width: 100%; display: block; }
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
 .wiki-h3 {
   font-size: 11px;
   font-weight: 700;
@@ -133,6 +159,7 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
+
 .wiki-p {
   font-size: 14px;
   color: var(--txt);
@@ -149,6 +176,7 @@ img { max-width: 100%; display: block; }
   padding-bottom: 22px;
   border-bottom: 1px solid var(--border2);
 }
+
 .hero img {
   width: 80px;
   height: 80px;
@@ -156,12 +184,14 @@ img { max-width: 100%; display: block; }
   border-radius: 4px;
   flex-shrink: 0;
 }
+
 .hero-logo {
   font-size: 24px;
   font-weight: 700;
   color: var(--fire);
   flex-shrink: 0;
 }
+
 .hero-name {
   font-size: 20px;
   font-weight: 700;
@@ -169,6 +199,7 @@ img { max-width: 100%; display: block; }
   display: block;
   margin-bottom: 5px;
 }
+
 .hero-desc {
   font-size: 13px;
   color: var(--txt-dim);
@@ -182,12 +213,14 @@ img { max-width: 100%; display: block; }
   gap: 8px;
   margin: 12px 0;
 }
+
 .stat-box {
   background: var(--surf);
   border: 1px solid var(--border2);
   border-radius: 2px;
   padding: 10px 14px;
 }
+
 .stat-k {
   font-size: 10px;
   color: var(--txt-dim);
@@ -196,6 +229,7 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
+
 .stat-v {
   font-size: 16px;
   font-weight: 700;
@@ -206,10 +240,11 @@ img { max-width: 100%; display: block; }
 /* ── NAV GRID ── */
 .nav-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
   margin: 12px 0;
 }
+
 .nav-card {
   background: var(--surf);
   border: 1px solid var(--border2);
@@ -221,27 +256,55 @@ img { max-width: 100%; display: block; }
   text-decoration: none;
   transition: border-color .15s, background .15s;
 }
-.nav-card:hover { background: var(--surf2); text-decoration: none; border-color: var(--fire); }
+
+.nav-card:hover {
+  background: var(--surf2);
+  text-decoration: none;
+  border-color: var(--fire);
+}
+
 .nc-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--txt-bright);
   display: block;
   letter-spacing: 0.06em;
 }
+
 .nc-sub {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--txt-dim);
   display: block;
   margin-top: 3px;
 }
-.nav-card.lore   { border-top-color: var(--lore-acc); }
-.nav-card.eventi { border-top-color: var(--ev-acc); }
-.nav-card.rare   { border-top-color: var(--rare-acc); }
-.nav-card.clan   { border-top-color: var(--clan-acc); }
-.nav-card.players{ border-top-color: var(--players); }
-.nav-card.bases  { border-top-color: #a78bfa; }
-.nav-card.fire   { border-top-color: var(--fire); }
+
+.nav-card.lore {
+  border-top-color: var(--lore-acc);
+}
+
+.nav-card.eventi {
+  border-top-color: var(--ev-acc);
+}
+
+.nav-card.rare {
+  border-top-color: var(--rare-acc);
+}
+
+.nav-card.clan {
+  border-top-color: var(--clan-acc);
+}
+
+.nav-card.players {
+  border-top-color: var(--players);
+}
+
+.nav-card.bases {
+  border-top-color: #a78bfa;
+}
+
+.nav-card.fire {
+  border-top-color: var(--fire);
+}
 
 /* ── QUOTE ── */
 .quote-block {
@@ -251,6 +314,7 @@ img { max-width: 100%; display: block; }
   margin: 14px 0;
   border-radius: 0 2px 2px 0;
 }
+
 .quote-who {
   font-size: 10px;
   font-weight: 700;
@@ -259,12 +323,14 @@ img { max-width: 100%; display: block; }
   display: block;
   letter-spacing: 0.06em;
 }
+
 .quote-date {
   font-size: 11px;
   color: var(--txt-dim);
   margin-bottom: 5px;
   display: block;
 }
+
 .quote-text {
   font-size: 13px;
   color: var(--txt-bright);
@@ -279,6 +345,7 @@ img { max-width: 100%; display: block; }
   padding: 14px 16px;
   margin: 12px 0;
 }
+
 .tc-title {
   font-size: 11px;
   font-weight: 700;
@@ -287,22 +354,55 @@ img { max-width: 100%; display: block; }
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
 .tc-meta {
   font-size: 11px;
   color: var(--txt-dim);
   margin-bottom: 8px;
   display: block;
 }
-.tc-body { font-size: 13px; color: var(--txt); line-height: 1.7; }
 
-.themed-card.lore  { background: var(--lore-bg); border-color: var(--lore-b); }
-.themed-card.lore .tc-title { color: var(--lore-acc); }
-.themed-card.eventi { background: var(--ev-bg); border-color: var(--ev-b); }
-.themed-card.eventi .tc-title { color: var(--ev-acc); }
-.themed-card.rare  { background: var(--rare-bg); border-color: var(--rare-b); }
-.themed-card.rare .tc-title { color: var(--rare-acc); }
-.themed-card.clan  { background: var(--clan-bg); border-color: var(--clan-b); }
-.themed-card.clan .tc-title { color: var(--clan-acc); }
+.tc-body {
+  font-size: 13px;
+  color: var(--txt);
+  line-height: 1.7;
+}
+
+.themed-card.lore {
+  background: var(--lore-bg);
+  border-color: var(--lore-b);
+}
+
+.themed-card.lore .tc-title {
+  color: var(--lore-acc);
+}
+
+.themed-card.eventi {
+  background: var(--ev-bg);
+  border-color: var(--ev-b);
+}
+
+.themed-card.eventi .tc-title {
+  color: var(--ev-acc);
+}
+
+.themed-card.rare {
+  background: var(--rare-bg);
+  border-color: var(--rare-b);
+}
+
+.themed-card.rare .tc-title {
+  color: var(--rare-acc);
+}
+
+.themed-card.clan {
+  background: var(--clan-bg);
+  border-color: var(--clan-b);
+}
+
+.themed-card.clan .tc-title {
+  color: var(--clan-acc);
+}
 
 /* ── TIP BOX ── */
 .tip-box {
@@ -315,6 +415,7 @@ img { max-width: 100%; display: block; }
   border-radius: 0 2px 2px 0;
   line-height: 1.7;
 }
+
 .tip-label {
   color: var(--fire2);
   font-size: 10px;
@@ -332,6 +433,7 @@ img { max-width: 100%; display: block; }
   margin: 10px 0 16px;
   font-size: 13px;
 }
+
 .wiki-table th {
   background: var(--surf);
   color: var(--fire);
@@ -343,14 +445,25 @@ img { max-width: 100%; display: block; }
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
 .wiki-table td {
   padding: 7px 12px;
   border: 1px solid var(--border);
   color: var(--txt);
 }
-.wiki-table tr:nth-child(even) td { background: var(--surf); }
-.wiki-table .check { color: var(--ev-acc); font-weight: 700; }
-.wiki-table .cross { color: var(--txt-dim); }
+
+.wiki-table tr:nth-child(even) td {
+  background: var(--surf);
+}
+
+.wiki-table .check {
+  color: var(--ev-acc);
+  font-weight: 700;
+}
+
+.wiki-table .cross {
+  color: var(--txt-dim);
+}
 
 /* ── PLAYER GRID ── */
 .player-grid {
@@ -359,6 +472,7 @@ img { max-width: 100%; display: block; }
   gap: 10px;
   margin: 12px 0;
 }
+
 .player-card {
   background: var(--surf);
   border: 1px solid var(--border2);
@@ -369,7 +483,12 @@ img { max-width: 100%; display: block; }
   text-decoration: none;
   transition: border-color .15s;
 }
-.player-card:hover { border-color: var(--fire); text-decoration: none; }
+
+.player-card:hover {
+  border-color: var(--fire);
+  text-decoration: none;
+}
+
 .player-card img {
   width: 80px;
   height: 80px;
@@ -377,6 +496,7 @@ img { max-width: 100%; display: block; }
   margin: 0 auto 8px;
   border-radius: 2px;
 }
+
 .pc-name {
   font-size: 11px;
   font-weight: 700;
@@ -385,7 +505,12 @@ img { max-width: 100%; display: block; }
   margin-bottom: 3px;
   line-height: 1.4;
 }
-.pc-role { font-size: 11px; color: var(--txt-dim); display: block; }
+
+.pc-role {
+  font-size: 11px;
+  color: var(--txt-dim);
+  display: block;
+}
 
 /* ── BADGE ── */
 .badge {
@@ -398,11 +523,31 @@ img { max-width: 100%; display: block; }
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.badge.fire  { background: var(--fire-dim);  color: var(--fire);  }
-.badge.lore  { background: var(--lore-b);    color: var(--lore-acc); }
-.badge.ev    { background: var(--ev-b);      color: var(--ev-acc); }
-.badge.rare  { background: var(--rare-b);    color: var(--rare-acc); }
-.badge.clan  { background: var(--clan-b);    color: var(--clan-acc); }
+
+.badge.fire {
+  background: var(--fire-dim);
+  color: var(--fire);
+}
+
+.badge.lore {
+  background: var(--lore-b);
+  color: var(--lore-acc);
+}
+
+.badge.ev {
+  background: var(--ev-b);
+  color: var(--ev-acc);
+}
+
+.badge.rare {
+  background: var(--rare-b);
+  color: var(--rare-acc);
+}
+
+.badge.clan {
+  background: var(--clan-b);
+  color: var(--clan-acc);
+}
 
 /* ── BREADCRUMB ── */
 .breadcrumb {
@@ -411,9 +556,20 @@ img { max-width: 100%; display: block; }
   margin-bottom: 18px;
   letter-spacing: 0.04em;
 }
-.breadcrumb a { color: var(--fire); }
-.breadcrumb span { margin: 0 4px; color: var(--border2); }
-.breadcrumb .current { margin-left: 0; color: var(--txt); }
+
+.breadcrumb a {
+  color: var(--fire);
+}
+
+.breadcrumb span {
+  margin: 0 4px;
+  color: var(--border2);
+}
+
+.breadcrumb .current {
+  margin-left: 0;
+  color: var(--txt);
+}
 
 /* ── ENCHANT LIST ── */
 .enchant-list {
@@ -422,6 +578,7 @@ img { max-width: 100%; display: block; }
   gap: 6px;
   margin: 8px 0 12px;
 }
+
 .enchant-tag {
   background: var(--rare-bg);
   border: 1px solid var(--rare-b);
@@ -442,6 +599,7 @@ img { max-width: 100%; display: block; }
   padding: 16px 18px;
   margin-bottom: 20px;
 }
+
 .clan-header img {
   width: 64px;
   height: 64px;
@@ -449,6 +607,7 @@ img { max-width: 100%; display: block; }
   border-radius: 2px;
   flex-shrink: 0;
 }
+
 .clan-name {
   font-size: 18px;
   font-weight: 700;
@@ -456,7 +615,11 @@ img { max-width: 100%; display: block; }
   display: block;
   margin-bottom: 4px;
 }
-.clan-desc { font-size: 12px; color: var(--txt-dim); }
+
+.clan-desc {
+  font-size: 12px;
+  color: var(--txt-dim);
+}
 
 /* ── FOOTER ── */
 .wiki-footer {
@@ -469,7 +632,15 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 700px) {
-  .wiki-layout { grid-template-columns: 1fr; }
-  .wiki-sidebar { display: none; }
-  .wiki-main { padding: 20px 16px; }
+  .wiki-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .wiki-sidebar {
+    display: none;
+  }
+
+  .wiki-main {
+    padding: 20px 16px;
+  }
 }
