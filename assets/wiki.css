@@ -28,6 +28,9 @@
   --clan-bg: #090f1a;
   --clan-b: #122440;
   --clan-acc: #4da6ff;
+  --exploit-bg: #130008;
+  --exploit-b: #40001a;
+  --exploit-acc: #ff2244;
   --font: 'JetBrains Mono', monospace;
 }
 
@@ -304,6 +307,10 @@ img {
 
 .nav-card.fire {
   border-top-color: var(--fire);
+}
+
+.nav-card.exploit {
+  border-top-color: var(--exploit-acc);
 }
 
 /* ── QUOTE ── */
