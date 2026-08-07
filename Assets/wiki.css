@@ -411,6 +411,15 @@ img {
   color: var(--clan-acc);
 }
 
+.themed-card.exploit {
+  background: var(--exploit-bg);
+  border-color: var(--exploit-b);
+}
+
+.themed-card.exploit .tc-title {
+  color: var(--exploit-acc);
+}
+
 /* ── TIP BOX ── */
 .tip-box {
   background: var(--surf);
@@ -554,6 +563,11 @@ img {
 .badge.clan {
   background: var(--clan-b);
   color: var(--clan-acc);
+}
+
+.badge.exploit {
+  background: var(--exploit-b);
+  color: var(--exploit-acc);
 }
 
 /* ── BREADCRUMB ── */
