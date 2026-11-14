@@ -139,29 +139,43 @@ function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save));
 const IMG = {}, VOICE = {};
 for (const d of LEVELS) {
   const im = new Image(); im.src = `assets/sprites/${d.id}.webp`; IMG[d.id] = im;
-  const a = new Audio(`assets/voices/${d.id}.mp3`); a.preload = "auto"; VOICE[d.id] = a;
+}
+// voci: scaricate subito, decodificate con Web Audio al primo tocco (su iPhone i suoni partono solo così)
+const VOICE_IDS = [...LEVELS.map(d => d.id), "overlord"], VOICE_RAW = {}, VOICE_BUF = {};
+for (const id of VOICE_IDS)
+  fetch(`assets/voices/${id}.mp3`).then(r => r.arrayBuffer()).then(b => { VOICE_RAW[id] = b; decodeVoices(); }).catch(() => {});
+function decodeVoices() {
+  if (!AC) return;
+  for (const id in VOICE_RAW) { const raw = VOICE_RAW[id]; delete VOICE_RAW[id];
+    AC.decodeAudioData(raw, buf => VOICE_BUF[id] = buf, () => {}); }
 }
 const loadImg = (k, src) => { const im = new Image(); im.src = src; IMG[k] = im; };
 for (const b of BGS) loadImg("bg_" + b.id, `assets/bg/${b.id}.webp`);
 for (const k of ["bomba", "reach", "calamita", "spin", "pugno"]) loadImg("ui_" + k, `assets/ui/${k}.webp`);
 loadImg("overlord", "assets/sprites/overlord.webp");
-const BOSS_VOICE = new Audio("assets/voices/overlord.mp3"); BOSS_VOICE.preload = "auto";
-let speaking = null;
-function say(lvl) {                         // la voce nuova zittisce le altre, ma non una più grossa che parla ancora
-  if (save.muted) return;
-  const a = VOICE[LEVELS[lvl].id];
-  if (speaking && !speaking.audio.paused && !speaking.audio.ended && speaking.lvl > lvl) return;
-  if (speaking) speaking.audio.pause();
-  a.currentTime = 0; a.volume = Math.min(1, .5 + lvl * .085);  // più grossa = più forte
-  a.play().catch(() => {}); speaking = {lvl, audio: a};
+let speaking = null;                                             // {lvl, src, gain, end}
+function voice(id, lvl, vol) {             // la voce nuova zittisce le altre, ma non una più grossa che parla ancora
+  if (save.muted || !AC) return;
+  const buf = VOICE_BUF[id]; if (!buf) return;
+  const t = AC.currentTime;
+  if (speaking && t < speaking.end && speaking.lvl > lvl) return;
+  if (speaking && t < speaking.end) {                            // fondo di 30 ms per non fare "clic"
+    speaking.gain.gain.setValueAtTime(speaking.gain.gain.value, t); speaking.gain.gain.linearRampToValueAtTime(0, t + .03);
+    speaking.src.stop(t + .035); }
+  const src = AC.createBufferSource(), g = AC.createGain();
+  src.buffer = buf; g.gain.value = vol; src.connect(g).connect(AC.destination); src.start(t);
+  speaking = {lvl, src, gain: g, end: t + buf.duration};
 }
+const say = lvl => voice(LEVELS[lvl].id, lvl, Math.min(1.1, .55 + lvl * .08));   // più grossa = più forte
 // effetti sonori discreti: le protagoniste sono le voci
 let AC = null, NOISE = null;
 function ensureAudio() {
   if (AC) { if (AC.state === "suspended") AC.resume(); return; }
   try { AC = new (window.AudioContext || window.webkitAudioContext)();
         NOISE = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
-        const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } catch (e) {}
+        const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        const s = AC.createBufferSource(); s.buffer = AC.createBuffer(1, 1, 22050); s.connect(AC.destination); s.start(0);  // sblocca iPhone
+        decodeVoices(); } catch (e) {}
 }
 function tone(f0, f1, len, vol = .1, type = "sine", delay = 0) {
   if (save.muted || !AC) return;
@@ -305,7 +319,11 @@ function toGame(e) {
   let x = (e.clientX - r.left) / r.width * W; const y = (e.clientY - r.top) / r.height * H;
   return {x, y};
 }
-canvas.addEventListener("pointermove", e => { const p = toGame(e); if (p.y < 975) pointerX = p.x; });
+let aiming = false;                                               // dito giù = mira, dito su = lascia cadere
+canvas.addEventListener("pointermove", e => { const p = toGame(e); if (aiming || p.y < 975) pointerX = p.x; });
+const release = () => { if (aiming) { aiming = false; drop(); } };
+canvas.addEventListener("pointerup", release);
+canvas.addEventListener("pointercancel", () => aiming = false);
 const POWS = ["Pow!", "Bam!", "Bonk!", "Smash!", "Wham!", "Boom!"];
 function punch(x, y) {
   if (state !== "boss" || boss.dead || now - boss.t0 < BOSS_INTRO) return;
@@ -326,7 +344,7 @@ canvas.addEventListener("pointerdown", e => {
   if (state !== "play") return;
   const p = toGame(e);
   if (p.y > 1030) { useBoost(BOOSTS[Math.min(3, Math.floor(p.x / 150))]); return; }
-  if (p.y < 975) { pointerX = p.x; drop(); }
+  if (p.y < 975) { pointerX = p.x; aiming = true; try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }
 });
 addEventListener("keydown", e => {
   if (state === "boss" && (e.key === " " || e.key === "Enter") && !e.repeat) { punch(W / 2 + (Math.random() - .5) * 300, 520 + (Math.random() - .5) * 300); return; }
@@ -421,7 +439,7 @@ function step(dt) {
         if (galCount >= 4 && !overlordAt) {                     // 4 galactic: arriva il Potato Overlord
           overlordAt = now; flash = 1; flashC = "#ff2a2a"; shake(35);
           boss = {t0: now, hp: BOSS_HP, left: BOSS_TIME, hits: 0, hit: 0, dead: 0}; state = "boss";
-          if (!save.muted) { if (speaking) speaking.audio.pause(); BOSS_VOICE.currentTime = 0; BOSS_VOICE.volume = 1; BOSS_VOICE.play().catch(() => {}); }
+          voice("overlord", 99, 1.2);
           SFX.thud();
         } }
     }
