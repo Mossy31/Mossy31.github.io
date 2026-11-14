@@ -1,0 +1,5 @@
+.venv-img/
+.venv-tts/
+assets/candidati/
+assets/voices_raw/
+__pycache__/

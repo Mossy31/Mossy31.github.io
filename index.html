@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Potato Chaos</title>
+<meta name="description" content="Merge absurd potatoes. By @Mossy31">
+<link rel="icon" href="assets/sprites/p1.webp">
+<style>
+  html,body{margin:0;height:100%;background:#0b0810;overflow:hidden;touch-action:none;color:#fff;
+    font-family:"Lilita One",sans-serif;letter-spacing:.02em;user-select:none;-webkit-user-select:none}
+  @font-face{font-family:"Lilita One";src:url(assets/fonts/LilitaOne.woff2) format("woff2");font-display:block}
+  [hidden]{display:none!important}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;height:min(100dvh,calc(100vw * 11 / 6));aspect-ratio:600/1100;container-type:size;
+    border-radius:14px;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+  .ov{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2.4cqw;text-align:center;background:#000a;padding:0 5cqw;-webkit-text-stroke:.35cqw #000;paint-order:stroke fill}
+  .ov h1{margin:0 0 4cqw;line-height:.95;transform:rotate(-4deg);animation:wob 1.6s ease-in-out infinite}
+  .ov h1 span{display:block;font-size:15cqw;color:#fff}.ov h1 b{display:block;font-size:19cqw;color:#ffd54a}
+  .ov h2{margin:0;font-size:13cqw;color:#ff3b3b}
+  @keyframes wob{50%{transform:rotate(4deg) scale(1.05)}}
+  .ov button{font:inherit;font-size:5.5cqw;color:#fff;background:#2a2333;border:.6cqw solid #fff;border-radius:3cqw;
+    padding:2cqw 6cqw;cursor:pointer;-webkit-text-stroke:0;box-shadow:0 1.2cqw 0 #000}
+  .ov button:active{transform:translateY(1cqw);box-shadow:none}
+  .ov button.big{font-size:8cqw;background:#e0a21b;padding:2.5cqw 10cqw;animation:pulse .8s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.07)}}
+  .row{display:flex;gap:3cqw;flex-wrap:wrap;justify-content:center}
+  .coins{font-size:6cqw;color:#ffd54a}
+  img.coin{height:1.15em;vertical-align:-.25em;-webkit-text-stroke:0}
+  .hint{font-size:4.2cqw;margin:2cqw 0 0}.handle{position:absolute;bottom:3cqw;font-size:4cqw;opacity:.7;margin:0}
+  .score{font-size:20cqw}
+  #over .row{opacity:.3;pointer-events:none;transition:opacity .3s}#over.ready .row{opacity:1;pointer-events:auto}
+  #shop{justify-content:flex-start;padding-top:6cqw;background:#120e18f2}
+  .shophead{display:flex;width:100%;justify-content:space-between;align-items:center}
+  .shophead h2{color:#ffd54a;font-size:9cqw}
+  .tabs{display:flex;gap:2cqw;width:100%}.tabs button{flex:1;font-size:5cqw;opacity:.55}
+  .tabs button.on{opacity:1;background:#4a3d5c}
+  #shopList{flex:1;width:100%;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:3cqw;padding:1cqw 0 3cqw;
+    -webkit-text-stroke:0;touch-action:pan-y;align-content:start}
+  .card{background:#2a2333;border:.5cqw solid #fff2;border-radius:3cqw;padding:2cqw;display:flex;flex-direction:column;
+    gap:1.5cqw;align-items:center;font-size:3.8cqw}
+  .card.cur{border-color:#ffd54a}
+  .sw{width:100%;aspect-ratio:3/4;border-radius:2cqw;border:.4cqw solid #fff3;display:flex;align-items:center;justify-content:center}
+  .sw img{width:45%}
+  .card .ic{width:22cqw;height:22cqw;object-fit:contain}.card .ds{opacity:.8;font-size:3.6cqw}
+  .card button{font-size:4.2cqw;padding:1.5cqw 3cqw;width:100%;margin-top:auto}   /* pulsante sempre in fondo alla card */
+  .card button.ok{background:#1d8f4a}.card button.no{background:#555;opacity:.6}
+  #shopBack{margin-bottom:4cqw}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <canvas id="c" width="600" height="1100"></canvas>
+  <div id="title" class="ov">
+    <h1><span>POTATO</span><b>CHAOS</b></h1>
+    <div class="coins"><img class="coin" src="assets/sprites/patacoin.webp" alt="patacoin"> <span class="coinN">0</span> Patacoins</div>
+    <button class="big" id="play">Play</button>
+    <button id="shopBtn">🛒 Shop</button>
+    <p class="hint">Merge matching potatoes.<br>Nothing makes sense.</p>
+    <p class="handle">@Mossy31</p>
+  </div>
+  <div id="over" class="ov" hidden>
+    <img id="ovWin" src="assets/sprites/overlord.webp" alt="" hidden style="width:38cqw;animation:pulse 1s ease-in-out infinite">
+    <h2 id="ovTitle">Game Over</h2>
+    <div class="hint" id="ovSub" hidden></div>
+    <div class="score" id="ovScore">0</div>
+    <div class="coins" id="ovBest"></div>
+    <div class="coins">+<span id="ovCoins">0</span> <img class="coin" src="assets/sprites/patacoin.webp" alt="patacoin"> Patacoins</div>
+    <div class="row"><button class="big" id="again">Retry</button></div>
+    <div class="row"><button id="shopBtn2">🛒 Shop</button><button id="home">Menu</button></div>
+    <p class="handle">@Mossy31</p>
+  </div>
+  <div id="shop" class="ov" hidden>
+    <div class="shophead"><h2>Shop</h2><div class="coins"><img class="coin" src="assets/sprites/patacoin.webp" alt="patacoin"> <span class="coinN">0</span></div></div>
+    <div class="tabs"><button data-tab="bg" class="on">🎨 Backgrounds</button><button data-tab="boost">🚀 Boosts</button></div>
+    <div id="shopList"></div>
+    <button id="shopBack">Back</button>
+  </div>
+</div></div>
+<script src="vendor/matter.min.js"></script>
+<script>
+"use strict";
+const {Engine, Bodies, Body, Composite, Events} = Matter;
+
+// ================================================================== dati
+const W = 600, H = 1100;
+const WALL_L = 60, WALL_R = 540, FLOOR = 965, DANGER = 235, DROP_Y = 165;
+const LEVELS = [
+  {id:"p1", name:"Crybaby Potato",   r:36},
+  {id:"p2", name:"Mullet Potato",       r:49},
+  {id:"p3", name:"Armpit Potato",     r:64},
+  {id:"p4", name:"Influencer Potato",      r:82},
+  {id:"p5", name:"Bodybuilder Potato",       r:104},
+  {id:"p6", name:"Buttery Cosmic Potato",  r:128},
+  {id:"p7", name:"Cosmo Potato",             r:152},
+  {id:"p8", name:"Galactic Potato",        r:180},
+];
+const POINTS = [0, 2, 6, 12, 20, 32, 50, 80, 300];
+
+// sfondi AI, tutti nello stesso stile (scuri, semplici, centro vuoto)
+const BGS = [
+  {id:"notte",    name:"Potato Night",   price:0},
+  {id:"cucina",   name:"Night Kitchen",  price:60},
+  {id:"spazio",   name:"Outer Space",    price:120},
+  {id:"parigi",   name:"Paris Rooftops", price:200},
+  {id:"fritte",   name:"Fry Volcano",    price:300},
+  {id:"vapor",    name:"Synthwave",      price:400},
+  {id:"castello", name:"Haunted Castle", price:550},
+  {id:"abisso",   name:"The Abyss",      price:700},
+];
+const BOOSTS = [
+  {id:"bomba",    name:"Bomb",   price:40, desc:"Blows up all the small potatoes",
+   use(){ for (const b of things()) if (b.plugin.lvl <= 1) {
+            score += POINTS[b.plugin.lvl + 1]; burst(b.position.x, b.position.y, 10, "#ff8a2a", 8);
+            Composite.remove(engine.world, b); }
+          kaboom(W / 2, 820, 12, "#ff8a2a"); }},
+  {id:"reach",    name:"Reach",  price:30, desc:"For 5 s matching potatoes merge even from far away",
+   use(){ boostT.reach = 5; SFX.whoosh(); }},
+  {id:"calamita", name:"Magnet", price:50, desc:"Matching potatoes attract each other for 3 s",
+   use(){ boostT.calamita = 3; SFX.whoosh(); }},
+  {id:"spin",     name:"Spin",   price:35, desc:"Spins the whole jar around in one go",
+   use(){ boostT.spin = SPIN_T; Composite.add(engine.world, lid); SFX.whoosh(); }},
+];
+const SPIN_T = 1.4;
+
+// ================================================================== salvataggio
+const SAVE_KEY = "patatacaos_v2";
+let save = {coins: 30, best: 0, bg: "notte", owned: ["notte"], boosts: {bomba: 1, reach: 1, calamita: 1, spin: 1}, muted: false};
+try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s) save = {...save, ...s, boosts: {...save.boosts, ...s.boosts}}; } catch (e) {}
+save.muted = false;
+if (!BGS.some(b => b.id === save.bg)) save.bg = "notte";
+if (!save.owned.includes("notte")) save.owned.push("notte");
+const bgNow = () => BGS.find(b => b.id === save.bg) || BGS[0];
+function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+// ================================================================== immagini e voci
+const IMG = {}, VOICE = {};
+for (const d of LEVELS) {
+  const im = new Image(); im.src = `assets/sprites/${d.id}.webp`; IMG[d.id] = im;
+  const a = new Audio(`assets/voices/${d.id}.mp3`); a.preload = "auto"; VOICE[d.id] = a;
+}
+const loadImg = (k, src) => { const im = new Image(); im.src = src; IMG[k] = im; };
+for (const b of BGS) loadImg("bg_" + b.id, `assets/bg/${b.id}.webp`);
+for (const k of ["bomba", "reach", "calamita", "spin", "pugno"]) loadImg("ui_" + k, `assets/ui/${k}.webp`);
+loadImg("overlord", "assets/sprites/overlord.webp");
+const BOSS_VOICE = new Audio("assets/voices/overlord.mp3"); BOSS_VOICE.preload = "auto";
+let speaking = null;
+function say(lvl) {                         // la voce nuova zittisce le altre, ma non una più grossa che parla ancora
+  if (save.muted) return;
+  const a = VOICE[LEVELS[lvl].id];
+  if (speaking && !speaking.audio.paused && !speaking.audio.ended && speaking.lvl > lvl) return;
+  if (speaking) speaking.audio.pause();
+  a.currentTime = 0; a.volume = Math.min(1, .5 + lvl * .085);  // più grossa = più forte
+  a.play().catch(() => {}); speaking = {lvl, audio: a};
+}
+// effetti sonori discreti: le protagoniste sono le voci
+let AC = null, NOISE = null;
+function ensureAudio() {
+  if (AC) { if (AC.state === "suspended") AC.resume(); return; }
+  try { AC = new (window.AudioContext || window.webkitAudioContext)();
+        NOISE = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+        const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } catch (e) {}
+}
+function tone(f0, f1, len, vol = .1, type = "sine", delay = 0) {
+  if (save.muted || !AC) return;
+  const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + len);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + len);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + len + .02);
+}
+function noise(len, vol = .2, ftype = "lowpass", f0 = 2000, f1 = 200) {
+  if (save.muted || !AC || !NOISE) return;
+  const t = AC.currentTime, s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = NOISE; fl.type = ftype; fl.frequency.setValueAtTime(f0, t); fl.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + len);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + len);
+  s.connect(fl).connect(g).connect(AC.destination); s.start(t); s.stop(t + len + .02);
+}
+const SFX = {
+  drop()   { tone(520, 260, .09, .06, "triangle"); },
+  pop(l)   { tone(260 - l * 22, 70, .22, .12); },
+  thud()   { noise(.5, .25, "lowpass", 900, 60); tone(110, 35, .45, .2); },
+  whoosh() { noise(.4, .15, "bandpass", 400, 3000); },
+  coin()   { tone(988, 988, .07, .07, "square"); tone(1319, 1319, .2, .07, "square", .07); },
+  buy()    { tone(523, 523, .08, .1, "triangle"); tone(784, 784, .22, .1, "triangle", .08); },
+  nope()   { tone(200, 110, .25, .12, "square"); },
+};
+
+// ================================================================== fisica
+const engine = Engine.create({enableSleeping: false});
+engine.gravity.y = 1.6;
+const wallOpts = {isStatic: true, restitution: 1.0, friction: .02, label: "wall"};
+Composite.add(engine.world, [
+  Bodies.rectangle(WALL_L - 30, 560, 60, 900, wallOpts),
+  Bodies.rectangle(WALL_R + 30, 560, 60, 900, wallOpts),
+  Bodies.rectangle(W / 2, FLOOR + 30, 640, 60, wallOpts),
+]);
+const lid = Bodies.rectangle(W / 2, 80, 640, 60, wallOpts);          // coperchio, solo durante lo spin
+const things = () => Composite.allBodies(engine.world).filter(b => b.plugin.lvl !== undefined);
+const rx = () => WALL_L + 50 + Math.random() * (WALL_R - WALL_L - 100);
+function spawn(lvl, x, y, vy = 0) {
+  const d = LEVELS[lvl];
+  const b = Bodies.circle(x, y, d.r, {restitution: .65, friction: .04, frictionAir: .003, density: .0012,
+    plugin: {lvl, born: now, pop: 0, d}});
+  Body.setVelocity(b, {x: 0, y: vy}); Composite.add(engine.world, b); return b;
+}
+
+// ================================================================== stato
+let now = 0, state = "title", score = 0, flash = 0, flashC = "#fff", shakeAmt = 0;
+let pointerX = W / 2, cooldown = 0, current = 0, next = 0, overTimer = 0;
+let maxLvl = 0, combo = 0, lastMerge = -9, winAt = 0, galCount = 0, overlordAt = 0, spinGrace = 0;
+// boss battle: 5 secondi per prenderlo a pugni
+const BOSS_HP = 30, BOSS_TIME = 5, BOSS_INTRO = 2.2;
+let boss = null;                                                // {t0, hp, left, hits, hit, dead}
+const gloves = [];
+const particles = [], floaters = [], flyers = [];
+const boostT = {reach: 0, calamita: 0, spin: 0};
+const REACH = 55;                                               // distanza extra per unirsi col boost Reach
+const GAL_SLOTS = [0, 1, 2, 3].map(i => ({x: 222 + i * 52, y: 64}));
+const view = {zoom: 1};
+const roll = () => { const p = Math.random(); return p < .4 ? 0 : p < .7 ? 1 : p < .9 ? 2 : 3; };
+
+function reset() {
+  for (const b of things()) Composite.remove(engine.world, b);
+  particles.length = floaters.length = flyers.length = 0;
+  view.zoom = 1; boostT.reach = boostT.calamita = boostT.spin = 0; spinGrace = 0;
+  Composite.remove(engine.world, lid); engine.gravity.x = 0; engine.gravity.y = 1.6;
+  score = 0; overTimer = 0; maxLvl = 0; combo = 0; winAt = 0; galCount = 0; overlordAt = 0; boss = null; gloves.length = 0;
+  current = 0; next = roll(); cooldown = .3; state = "play";
+  show(null); say(0);
+}
+function drop() {
+  if (state !== "play" || cooldown > 0 || winAt || boostT.spin > 0) return;
+  const r = LEVELS[current].r, x = Math.max(WALL_L + r + 2, Math.min(WALL_R - r - 2, pointerX));
+  spawn(current, x, DROP_Y, 2); SFX.drop();
+  current = next; next = roll(); cooldown = .55;
+}
+function endGame(won) {
+  state = "over";
+  const coinsWon = 5 + Math.floor(score / 25) + (won ? 50 : 0) + (boss ? boss.hits : 0), record = score > save.best;
+  document.getElementById("ovTitle").textContent = won ? "You Win!" : "Game Over";
+  document.getElementById("ovTitle").style.color = won ? "#b98cff" : "#ff3b3b";
+  const sub = won ? `You knocked out the Potato Overlord with ${boss.hits} punches.`
+            : boss ? "The Potato Overlord escaped." : "";
+  document.getElementById("ovSub").textContent = sub; document.getElementById("ovSub").hidden = !sub;
+  document.getElementById("ovWin").hidden = !won;
+  save.coins += coinsWon; save.best = Math.max(save.best, score); persist();
+  SFX.thud();
+  document.getElementById("ovScore").textContent = score;
+  document.getElementById("ovBest").textContent = record ? "New record!" : `Record: ${save.best}`;
+  document.getElementById("ovCoins").textContent = coinsWon;
+  show("over"); const ov = document.getElementById("over"); ov.classList.remove("ready");
+  setTimeout(() => ov.classList.add("ready"), 1000);
+}
+
+// ================================================================== effetti
+const shake = a => shakeAmt = Math.max(shakeAmt, a);
+function burst(x, y, n, color, speed = 8) {
+  for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, s = speed * (.3 + Math.random());
+    particles.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, c: color, r: 3 + Math.random() * 5}); }
+}
+function floatText(x, y, txt, size = 34, color = "#fff") { floaters.push({x, y, txt, size, color, life: 1}); }
+function kaboom(x, y, power, color) {
+  for (const b of things()) {
+    const dx = b.position.x - x, dy = b.position.y - y, d = Math.hypot(dx, dy) || 1;
+    if (d < 260) Body.setVelocity(b, {x: b.velocity.x + dx / d * power * (1 - d / 260), y: b.velocity.y + dy / d * power * (1 - d / 260) - 4});
+  }
+  burst(x, y, 36, color, 14); shake(18); flash = .6; flashC = color; SFX.thud();
+}
+
+// ================================================================== fusioni
+const merging = new Set();
+Events.on(engine, "collisionStart", e => {
+  for (const {bodyA: a, bodyB: b} of e.pairs) {
+    if (a.plugin.lvl === undefined || b.plugin.lvl === undefined || merging.has(a) || merging.has(b)) continue;
+    if (a.plugin.lvl === b.plugin.lvl && a.plugin.lvl < LEVELS.length - 1) merge(a, b);
+  }
+});
+function merge(a, b) {
+  merging.add(a); merging.add(b);
+  const lvl = a.plugin.lvl, x = (a.position.x + b.position.x) / 2, y = (a.position.y + b.position.y) / 2;
+  Composite.remove(engine.world, [a, b]);
+  combo = now - lastMerge < 1.3 ? combo + 1 : 1; lastMerge = now;
+  const col = "#ffd54a";
+  const n = spawn(lvl + 1, x, y, -6 - lvl * 1.5); n.plugin.pop = 1;
+  const pts = POINTS[lvl + 1] * (combo >= 3 ? 2 : 1); score += pts;
+  maxLvl = Math.max(maxLvl, lvl + 1);
+  say(lvl + 1);
+  burst(x, y, 10 + lvl * 5, col, 5 + lvl);
+  shake(3 + lvl * 2.5); view.zoom = Math.max(view.zoom, 1 + lvl * .01);
+  floatText(x, y - 20, `+${pts}`, 22 + lvl * 2, col);
+  if (combo >= 3) { floatText(W / 2, 330, `Combo x${combo}`, 40 + combo * 3, col); SFX.coin(); }
+  SFX.pop(lvl + 1);
+  if (lvl + 1 === LEVELS.length - 1) {                        // Galactic: tra poco vola nel contatore (servono 4)
+    flash = 1; flashC = "#b98cff"; shake(25); view.zoom = 1.1; n.plugin.absorb = now + .9;
+    burst(x, y, 60, "#b98cff", 14); floatText(W / 2, 420, `Galactic Potato! ${galCount + 1}/4`, 44, "#b98cff");
+  }
+}
+
+// ================================================================== input
+const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
+function toGame(e) {
+  const r = canvas.getBoundingClientRect();
+  let x = (e.clientX - r.left) / r.width * W; const y = (e.clientY - r.top) / r.height * H;
+  return {x, y};
+}
+canvas.addEventListener("pointermove", e => { const p = toGame(e); if (p.y < 975) pointerX = p.x; });
+const POWS = ["Pow!", "Bam!", "Bonk!", "Smash!", "Wham!", "Boom!"];
+function punch(x, y) {
+  if (state !== "boss" || boss.dead || now - boss.t0 < BOSS_INTRO) return;
+  boss.hp--; boss.hits++; boss.hit = 1; score += 10;
+  gloves.push({x, y, life: 1, rot: (Math.random() - .5) * .8, flip: x < W / 2});
+  burst(x, y, 10, "#ffd54a", 7); shake(10);
+  if (Math.random() < .35) floatText(x + (Math.random() - .5) * 80, y - 40, POWS[Math.floor(Math.random() * POWS.length)], 38, "#ffd54a");
+  noise(.12, .35, "lowpass", 2500, 150); tone(180, 60, .12, .25);
+  if (boss.hp <= 0) {                                             // K.O.!
+    boss.dead = now; flash = 1; flashC = "#fff"; shake(40);
+    burst(W / 2, 520, 120, "#ff4040", 18); burst(W / 2, 520, 80, "#ffd54a", 14);
+    floatText(W / 2, 300, "K.O.!", 90, "#ffd54a"); SFX.thud(); SFX.coin();
+  }
+}
+canvas.addEventListener("pointerdown", e => {
+  ensureAudio();
+  if (state === "boss") { const p = toGame(e); punch(p.x, p.y); return; }
+  if (state !== "play") return;
+  const p = toGame(e);
+  if (p.y > 1030) { useBoost(BOOSTS[Math.min(3, Math.floor(p.x / 150))]); return; }
+  if (p.y < 975) { pointerX = p.x; drop(); }
+});
+addEventListener("keydown", e => {
+  if (state === "boss" && (e.key === " " || e.key === "Enter") && !e.repeat) { punch(W / 2 + (Math.random() - .5) * 300, 520 + (Math.random() - .5) * 300); return; }
+  if (state !== "play") return;
+  if (e.key === "ArrowLeft") pointerX -= 25; else if (e.key === "ArrowRight") pointerX += 25;
+  else if (e.key === " " || e.key === "Enter") { ensureAudio(); drop(); }
+  else if ("1234".includes(e.key)) useBoost(BOOSTS[+e.key - 1]);
+});
+function useBoost(b) {
+  if (!b || state !== "play") return;
+  if (!save.boosts[b.id]) { SFX.nope(); floatText(W / 2, 900, "Buy it in the Shop", 28, "#ff6b6b"); return; }
+  save.boosts[b.id]--; persist(); b.use();
+}
+
+// ================================================================== menu (DOM)
+const $ = id => document.getElementById(id);
+let shopTab = "bg", shopFrom = "title";
+function show(id) {
+  for (const k of ["title", "over", "shop"]) $(k).hidden = k !== id;
+  for (const el of document.querySelectorAll(".coinN")) el.textContent = save.coins;
+  if (id === "shop") renderShop();
+}
+function renderShop() {
+  for (const el of document.querySelectorAll(".coinN")) el.textContent = save.coins;
+  for (const t of document.querySelectorAll(".tabs button")) t.classList.toggle("on", t.dataset.tab === shopTab);
+  $("shopList").innerHTML = shopTab === "bg" ? BGS.map(b => {
+    const own = save.owned.includes(b.id), cur = save.bg === b.id;
+    const btn = cur ? `<button class="ok" disabled>In Use</button>` : own ? `<button data-use="${b.id}">Use</button>`
+      : `<button data-buy="${b.id}" class="${save.coins >= b.price ? "" : "no"}"><img class="coin" src="assets/sprites/patacoin.webp" alt="patacoin"> ${b.price}</button>`;
+    return `<div class="card ${cur ? "cur" : ""}"><div class="sw" style="background:#15101f url(assets/bg/${b.id}.webp) center/cover"></div>
+      <div>${b.name}</div>${btn}</div>`;
+  }).join("") : BOOSTS.map(b => `<div class="card"><img class="ic" src="assets/ui/${b.id}.webp" alt=""><div>${b.name}</div>
+      <div class="ds">${b.desc}</div><div>Owned: ${save.boosts[b.id] || 0}</div>
+      <button data-boost="${b.id}" class="${save.coins >= b.price ? "" : "no"}"><img class="coin" src="assets/sprites/patacoin.webp" alt="patacoin"> ${b.price}</button></div>`).join("");
+}
+$("shopList").addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return; ensureAudio();
+  if (t.dataset.use) { save.bg = t.dataset.use; SFX.coin(); }
+  const item = BGS.find(b => b.id === t.dataset.buy) || BOOSTS.find(b => b.id === t.dataset.boost);
+  if (item) {
+    if (save.coins < item.price) { SFX.nope(); return; }
+    save.coins -= item.price; SFX.buy();
+    if (t.dataset.buy) { save.owned.push(item.id); save.bg = item.id; } else save.boosts[item.id] = (save.boosts[item.id] || 0) + 1;
+  }
+  persist(); renderShop();
+});
+for (const t of document.querySelectorAll(".tabs button")) t.addEventListener("click", () => { shopTab = t.dataset.tab; renderShop(); });
+$("play").addEventListener("click", () => { ensureAudio(); reset(); });
+$("again").addEventListener("click", () => { ensureAudio(); reset(); });
+$("home").addEventListener("click", () => { state = "title"; show("title"); });
+$("shopBtn").addEventListener("click", () => { ensureAudio(); shopFrom = "title"; show("shop"); });
+$("shopBtn2").addEventListener("click", () => { shopFrom = "over"; show("shop"); });
+$("shopBack").addEventListener("click", () => { if (shopFrom === "over") state = "title"; show("title"); });
+show("title");
+
+// ================================================================== loop
+let last = performance.now(), acc = 0;
+function frame(t) {
+  const dt = Math.min(.05, (t - last) / 1000); last = t; acc += dt;
+  while (acc >= 1 / 60) { step(1 / 60); acc -= 1 / 60; }
+  draw(); requestAnimationFrame(frame);
+}
+function step(dt) {
+  now += dt;
+  if (state === "play") {
+    for (const b of things()) if (b.plugin.pop > 0) b.plugin.pop -= dt * 3;
+    if (boostT.reach > 0) {                                      // Reach: le patate uguali si uniscono anche da lontano
+      boostT.reach -= dt;
+      const pots = things();
+      for (let i = 0; i < pots.length; i++) for (let k = i + 1; k < pots.length; k++) {
+        const a = pots[i], b = pots[k];
+        if (a.plugin.lvl !== b.plugin.lvl || a.plugin.lvl >= LEVELS.length - 1 || merging.has(a) || merging.has(b)) continue;
+        if (Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y) < a.circleRadius + b.circleRadius + REACH) merge(a, b);
+      }
+      merging.clear();
+    }
+    if (boostT.spin > 0) {                                       // il barattolo gira: la gravità gira al contrario
+      boostT.spin -= dt;
+      if (boostT.spin <= 0) { boostT.spin = 0; Composite.remove(engine.world, lid); spinGrace = 1.2; }
+      const th = spinAngle();
+      engine.gravity.x = 1.6 * Math.sin(th); engine.gravity.y = 1.6 * Math.cos(th);
+    }
+    if (spinGrace > 0) spinGrace -= dt;
+    for (const b of things()) if (b.plugin.absorb && now >= b.plugin.absorb) {
+      const slot = GAL_SLOTS[Math.min(3, galCount + flyers.length)];
+      flyers.push({x: b.position.x, y: b.position.y, x0: b.position.x, y0: b.position.y, tx: slot.x, ty: slot.y, t: 0, r: b.circleRadius});
+      burst(b.position.x, b.position.y, 30, "#b98cff", 9); SFX.whoosh(); Composite.remove(engine.world, b);
+    }
+    for (let i = flyers.length - 1; i >= 0; i--) {
+      const f = flyers[i]; f.t += dt / .8;
+      if (f.t >= 1) { flyers.splice(i, 1); galCount++; SFX.coin(); flash = .4; flashC = "#b98cff";
+        if (galCount >= 4 && !overlordAt) {                     // 4 galactic: arriva il Potato Overlord
+          overlordAt = now; flash = 1; flashC = "#ff2a2a"; shake(35);
+          boss = {t0: now, hp: BOSS_HP, left: BOSS_TIME, hits: 0, hit: 0, dead: 0}; state = "boss";
+          if (!save.muted) { if (speaking) speaking.audio.pause(); BOSS_VOICE.currentTime = 0; BOSS_VOICE.volume = 1; BOSS_VOICE.play().catch(() => {}); }
+          SFX.thud();
+        } }
+    }
+    if (boostT.calamita > 0) {                                   // le patate uguali si attirano
+      boostT.calamita -= dt;
+      const pots = things();
+      for (let i = 0; i < pots.length; i++) for (let k = i + 1; k < pots.length; k++) {
+        const a = pots[i], b = pots[k]; if (a.plugin.lvl !== b.plugin.lvl) continue;
+        const dx = b.position.x - a.position.x, dy = b.position.y - a.position.y, d = Math.hypot(dx, dy) || 1, f = .0025;
+        Body.applyForce(a, a.position, {x: dx / d * a.mass * f, y: dy / d * a.mass * f});
+        Body.applyForce(b, b.position, {x: -dx / d * b.mass * f, y: -dy / d * b.mass * f});
+      }
+    }
+    Engine.update(engine, 1000 / 60); merging.clear();
+    cooldown -= dt;
+    if (winAt && now >= winAt) { endGame(true); return; }
+    for (const b of things())
+      if (b.position.y > H + 200 || b.position.y < -600 || b.position.x < -200 || b.position.x > W + 200)
+        Body.setPosition(b, {x: W / 2, y: 300}), Body.setVelocity(b, {x: 0, y: 0});
+    const over = !winAt && boostT.spin <= 0 && spinGrace <= 0 && things().some(b =>
+      now - b.plugin.born > 1.5 && b.position.y - b.circleRadius < DANGER && Math.abs(b.velocity.y) < 2);
+    overTimer = over ? overTimer + dt : Math.max(0, overTimer - dt * 2);
+    if (overTimer > 2) endGame(false);
+  }
+  if (state === "boss") {
+    boss.hit = Math.max(0, boss.hit - dt * 6);
+    if (boss.dead) { if (now - boss.dead > 1.8) endGame(true); }
+    else if (now - boss.t0 > BOSS_INTRO) { boss.left -= dt; if (boss.left <= 0) { boss.left = 0; SFX.nope(); endGame(false); } }
+  }
+  for (let i = gloves.length - 1; i >= 0; i--) if ((gloves[i].life -= dt * 3.5) <= 0) gloves.splice(i, 1);
+  for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vy += .35; p.life -= dt * 1.4; }
+  for (let i = particles.length - 1; i >= 0; i--) if (particles[i].life <= 0) particles.splice(i, 1);
+  for (const f of floaters) { f.y -= 1.2; f.life -= dt * .7; }
+  for (let i = floaters.length - 1; i >= 0; i--) if (floaters[i].life <= 0) floaters.splice(i, 1);
+  shakeAmt *= .9; flash = Math.max(0, flash - dt * 2); view.zoom += (1 - view.zoom) * .08;
+}
+
+// ================================================================== disegno
+function sprite(id, x, y, r, ang = 0, scale = 1, alpha = 1) {
+  const im = IMG[id]; ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(ang); ctx.scale(scale, scale);
+  if (im && im.complete && im.naturalWidth) ctx.drawImage(im, -r * 1.12, -r * 1.12, r * 2.24, r * 2.24);
+  else { ctx.fillStyle = "#c96"; ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.283); ctx.fill(); }
+  ctx.restore();
+}
+function text(t, x, y, size, color = "#fff", align = "center", stroke = 7) {
+  ctx.font = `${size}px "Lilita One", sans-serif`; ctx.textAlign = align; ctx.textBaseline = "middle";
+  ctx.lineJoin = "round"; ctx.lineWidth = stroke; ctx.strokeStyle = "#000"; ctx.strokeText(t, x, y);
+  ctx.fillStyle = color; ctx.fillText(t, x, y);
+}
+function jarPath(inset = 0, rad = 40) {                         // forma a U con angoli arrotondati, aperta in alto
+  const l = WALL_L - inset, r = WALL_R + inset, t = DANGER - 70, b = FLOOR + inset;
+  ctx.beginPath(); ctx.moveTo(l, t); ctx.lineTo(l, b - rad); ctx.quadraticCurveTo(l, b, l + rad, b);
+  ctx.lineTo(r - rad, b); ctx.quadraticCurveTo(r, b, r, b - rad); ctx.lineTo(r, t);
+}
+function neon(path, glow = "255,213,74") {                      // contorno neon: alone largo + linea piena + anima chiara
+  for (const [w, a] of [[26, .08], [14, .18], [6, .9]]) { path(); ctx.strokeStyle = `rgba(${glow},${a})`; ctx.lineWidth = w; ctx.stroke(); }
+  path(); ctx.strokeStyle = "#fff8e0"; ctx.lineWidth = 2; ctx.stroke();
+}
+function drawJar() {
+  ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
+  neon(() => jarPath(6));
+  if (boostT.spin > 0) neon(() => { ctx.beginPath(); ctx.moveTo(WALL_L - 6, 110); ctx.lineTo(WALL_R + 6, 110); });   // coperchio
+  ctx.restore();
+}
+function drawWorld() {
+  drawJar();
+  const danger = overTimer > 0 && state === "play";              // linea del pericolo: rossa e semplice, lampeggia se stai per perdere
+  ctx.strokeStyle = danger && Math.floor(now * 8) % 2 ? "#ff2a2a" : "rgba(255,42,42,.6)"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(WALL_L, DANGER); ctx.lineTo(WALL_R, DANGER); ctx.stroke();
+  if (boostT.reach > 0) {
+    const pots = things(); ctx.lineCap = "round";
+    for (let i = 0; i < pots.length; i++) for (let k = i + 1; k < pots.length; k++) {
+      const a = pots[i], b = pots[k]; if (a.plugin.lvl !== b.plugin.lvl) continue;
+      const d = Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y);
+      if (d < a.circleRadius + b.circleRadius + REACH * 2) {
+        ctx.strokeStyle = `rgba(120,255,240,${.5 + Math.sin(now * 20) * .3})`; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(a.position.x, a.position.y); ctx.lineTo(b.position.x, b.position.y); ctx.stroke(); }
+    }
+  }
+  for (const b of things()) {
+    const p = b.plugin, sc = 1 + Math.max(0, p.pop) * .35;
+    sprite(p.d.id, b.position.x, b.position.y, b.circleRadius, b.angle, sc);
+  }
+  for (const p of particles) { ctx.globalAlpha = Math.max(0, Math.min(1, p.life)); ctx.fillStyle = p.c;
+    ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0, p.r * p.life), 0, 6.283); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (state === "play" && cooldown <= .25 && boostT.spin <= 0 && !winAt) {   // patata in mano
+    const d = LEVELS[current], x = Math.max(WALL_L + d.r + 2, Math.min(WALL_R - d.r - 2, pointerX));
+    ctx.strokeStyle = "#fff"; ctx.globalAlpha = .25; ctx.lineWidth = 2; ctx.setLineDash([6, 8]);
+    ctx.beginPath(); ctx.moveTo(x, DROP_Y); ctx.lineTo(x, FLOOR); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    sprite(d.id, x, DROP_Y, d.r, Math.sin(now * 6) * .15);
+  }
+}
+function drawHud() {
+  for (const f of floaters) { ctx.save(); ctx.globalAlpha = Math.min(1, f.life * 2); ctx.translate(f.x, f.y);
+    const s = 1 + (1 - f.life) * .3; ctx.scale(s, s); text(f.txt, 0, 0, f.size, f.color); ctx.restore(); }
+  ctx.globalAlpha = 1;
+  text(`${score}`, 30, 52, 52, "#fff", "left");
+  text(`Record ${save.best}`, 32, 100, 20, "#ffd54a", "left", 5);
+  text("Next", W - 92, 40, 18, "#fff", "center", 5);
+  sprite(LEVELS[next].id, W - 92, 92, 30);
+  for (let i = 0; i < 4; i++) {                                  // contatore delle Galactic (servono 4)
+    const sl = GAL_SLOTS[i]; ctx.fillStyle = "#ffffff12"; ctx.beginPath(); ctx.arc(sl.x, sl.y, 22, 0, 6.283); ctx.fill();
+    sprite("p8", sl.x, sl.y, 18, 0, 1, i < galCount ? 1 : .18);
+  }
+  for (const f of flyers) { const e = f.t * f.t * (3 - 2 * f.t);
+    sprite("p8", f.x0 + (f.tx - f.x0) * e, f.y0 + (f.ty - f.y0) * e - Math.sin(f.t * 3.14) * 120, f.r + (18 - f.r) * e, f.t * 6); }
+  if (overTimer > .3) text(`${Math.ceil(2 - overTimer)}`, W / 2, 330, 90, "#ff3b3b");
+  ctx.fillStyle = "#0006"; ctx.fillRect(0, 988, W, H - 988);
+  for (let i = 0; i < LEVELS.length; i++) sprite(LEVELS[i].id, 47 + i * 72, 1010, 16, 0, 1, i <= maxLvl ? 1 : .25);
+  for (let i = 0; i < BOOSTS.length; i++) {
+    const b = BOOSTS[i], x = 8 + i * 150, n = save.boosts[b.id] || 0, active = boostT[b.id] > 0;
+    ctx.fillStyle = active ? "#ffd54a55" : "#ffffff18"; ctx.strokeStyle = "#ffffff88"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, 1034, 134, 56, 14) : ctx.rect(x, 1034, 134, 56); ctx.fill(); ctx.stroke();
+    img("ui_" + b.id, x + 18, 1036, 52, 52);
+    text(`x${n}`, x + 98, 1063, 24, "#fff", "center", 5);
+  }
+}
+function fitCanvas() {                                         // disegna ai pixel reali dello schermo: niente sfocato
+  const r = canvas.getBoundingClientRect(), dpr = Math.min(3, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  ctx.setTransform(w / W, 0, 0, h / H, 0, 0);
+  ctx.imageSmoothingQuality = "high";
+}
+function spinAngle() { const t = 1 - boostT.spin / SPIN_T; return boostT.spin > 0 ? 6.2832 * (t < .5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t)) : 0; }
+function img(k, x, y, w, h, alpha = 1) {
+  const im = IMG[k]; if (!im || !im.complete || !im.naturalWidth) return false;
+  ctx.globalAlpha = alpha; ctx.drawImage(im, x, y, w, h); ctx.globalAlpha = 1; return true;
+}
+let redCache = null;
+function redBoss(im) {                                          // copia rossa del boss, calcolata una volta sola
+  if (redCache) return redCache;
+  try { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
+        const g = c.getContext("2d"); g.drawImage(im, 0, 0);
+        g.globalCompositeOperation = "source-atop"; g.fillStyle = "#ff2828"; g.fillRect(0, 0, c.width, c.height);
+        redCache = c; } catch (e) {}
+  return redCache;
+}
+function drawBoss() {
+  const t = Math.min(1, (now - boss.t0) / .8), intro = now - boss.t0 < BOSS_INTRO;
+  ctx.fillStyle = `rgba(30,0,10,${.72 * t})`; ctx.fillRect(0, 0, W, H);
+  // il boss: entra, respira, trema quando lo colpisci, esplode al K.O.
+  const dead = boss.dead ? Math.min(1, (now - boss.dead) / .6) : 0;
+  let s = (1 - Math.pow(1 - t, 3)) * (1 + Math.sin(now * 5) * .03) * (1 - dead * .9);
+  const jx = boss.hit * (Math.random() - .5) * 40, jy = boss.hit * (Math.random() - .5) * 30;
+  const im = IMG.overlord;
+  if (im && im.complete && im.naturalWidth && dead < 1) {
+    ctx.save(); ctx.translate(W / 2 + jx, 520 + jy); ctx.rotate(boss.hit * (Math.random() - .5) * .4 + dead * 6);
+    ctx.scale(s * (1 + boss.hit * .08), s * (1 - boss.hit * .1));
+    ctx.drawImage(im, -260, -260, 520, 520);
+    const red = redBoss(im);                                     // flash rosso solo sui pixel del boss, non sul riquadro
+    if (boss.hit > 0 && red) { ctx.globalAlpha = boss.hit * .55; ctx.drawImage(red, -260, -260, 520, 520); }
+    ctx.restore();
+  }
+  text("Potato Overlord", W / 2, 170, 46, "#ff4040", "center", 8);
+  // barra della vita
+  const bw = 440, bx = W / 2 - bw / 2, by = 205, f = Math.max(0, boss.hp / BOSS_HP);
+  ctx.fillStyle = "#000a"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx - 4, by - 4, bw + 8, 30, 15) : ctx.rect(bx - 4, by - 4, bw + 8, 30); ctx.fill();
+  ctx.fillStyle = f > .3 ? "#ff3b3b" : "#ffd54a"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, bw * f, 22, 11) : ctx.rect(bx, by, bw * f, 22); ctx.fill();
+  // tempo e istruzioni
+  if (intro) {
+    if (now - boss.t0 > .9) text("Tap to punch!", W / 2, 840, 54, "#ffd54a", "center", 9);
+    text("Defeat him in 5 seconds", W / 2, 900, 28, "#fff", "center", 6);
+  } else if (!boss.dead) {
+    text(boss.left.toFixed(1), W / 2, 850, 92, boss.left < 1.5 ? "#ff3b3b" : "#fff", "center", 10);
+    text(`${boss.hits} punches`, W / 2, 920, 30, "#ffd54a", "center", 6);
+  }
+  for (const g of gloves) {                                       // guantoni dove hai cliccato
+    const k = 1 + (1 - g.life) * .4; ctx.save(); ctx.globalAlpha = Math.min(1, g.life * 1.5);
+    ctx.translate(g.x, g.y); ctx.rotate(g.rot); ctx.scale(g.flip ? -k : k, k);
+    const gi = IMG.ui_pugno; if (gi && gi.complete && gi.naturalWidth) ctx.drawImage(gi, -55, -55, 110, 110);
+    ctx.restore();
+  }
+}
+function draw() {
+  fitCanvas();
+  const bg = bgNow();
+  ctx.save();
+  if (shakeAmt > .3) ctx.translate((Math.random() - .5) * shakeAmt, (Math.random() - .5) * shakeAmt);
+  if (img("bg_" + bg.id, -40, -40, W + 80, H + 80)) { ctx.fillStyle = "#0000004d"; ctx.fillRect(-40, -40, W + 80, H + 80); }
+  else { ctx.fillStyle = "#15101f"; ctx.fillRect(-40, -40, W + 80, H + 80); }
+  if (state !== "title") {
+    ctx.save();
+    ctx.translate(W / 2, 600); ctx.scale(view.zoom, view.zoom); ctx.rotate(spinAngle()); ctx.translate(-W / 2, -600);
+    drawWorld(); ctx.restore();
+    drawHud();
+    if (boss) drawBoss();
+  } else {
+    for (let i = 0; i < LEVELS.length; i++) {
+      const a = now * .7 + i * 6.283 / LEVELS.length;
+      sprite(LEVELS[i].id, W / 2 + Math.cos(a) * 225, 600 + Math.sin(a) * 340, 34 + i * 4, Math.sin(now * 3 + i) * .4);
+    }
+  }
+  ctx.restore();
+  if (flash > 0) { ctx.globalAlpha = flash * .7; ctx.fillStyle = flashC; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+}
+requestAnimationFrame(frame);
+
+// ?overlord = prova veloce del finale: 3 Galactic già raccolte, la quarta nasce subito
+if (location.search.includes("overlord")) {
+  reset(); galCount = 3;
+  setTimeout(() => { spawn(6, 240, 700); spawn(6, 400, 700); }, 600);
+}
+// ?auto = il gioco si gioca da solo (per demo e test)
+if (location.search.includes("auto")) {
+  save.muted = true; reset();
+  setInterval(() => { if (state !== "play") reset(); pointerX = 80 + Math.random() * 440; drop(); }, 700);
+}
+</script>
+</body>
+</html>
